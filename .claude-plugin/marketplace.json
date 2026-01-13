@@ -21,10 +21,8 @@
       "author": {
         "name": "mis8680"
       },
-      "commands": ".claude/commands",
-      "skills": ".claude/skills",
-      "agents": ".claude/agents",
-      "category": "productivity"
+      "category": "productivity",
+      "homepage": "https://github.com/mis8680/my-claude-code"
     }
   ]
 }
