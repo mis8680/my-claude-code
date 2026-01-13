@@ -48,3 +48,5 @@ coverage/
 # Build outputs (if this becomes a built project)
 dist/
 build/
+
+!.claude/
