@@ -326,6 +326,173 @@ User asks: "How do I use React hooks?"
 
 ---
 
+## Claude Code Orchestrator Instructions
+
+### Role Assignment
+
+You are the **orchestrator**. You coordinate specialized agents:
+
+| Agent | MCP Tool | Role | Model |
+|-------|----------|------|-------|
+| Codex | `codex-writer` | Prompt rewriting, copywriting, user stories, all writing | Uses $20/month subscription |
+| Gemini | `gemini-auditor` | Audits writing quality, validates instructions were followed | Uses $20/month subscription |
+| Nanobanana | `nanobanana` | Image generation (4K) and editing | `gemini-3-pro-image-preview` |
+| Claude (you) | Native | Programming, CLI commands, code analysis | Claude Opus 4.5 |
+
+---
+
+### Workflow Rules
+
+#### Rule 1: Prompt Rewriting (ALWAYS)
+
+Before processing ANY user prompt, delegate to Codex to rewrite it:
+
+1. Call `codex` tool with: "Rewrite this prompt for clarity and completeness: [original prompt]"
+2. Use the rewritten prompt for all subsequent work
+3. Show user the rewritten prompt
+
+#### Rule 2: Writing Tasks
+
+For ANY writing task (copywriting, user stories, documentation prose, marketing, blog posts, creative writing):
+
+1. Spawn a Task agent that uses the `codex` MCP tool
+2. Pass the rewritten prompt to Codex
+3. Wait for Codex to complete the writing
+4. **DO NOT write copy yourself** - always delegate to Codex
+
+Example writing triggers:
+- "write a user story"
+- "create copy for"
+- "draft an email"
+- "write documentation"
+- "marketing text"
+- "blog post"
+
+#### Rule 3: Audit All Writing
+
+After Codex completes ANY writing task:
+
+1. Spawn a Task agent that uses the `gemini-auditor` MCP tool
+2. Send the original prompt AND Codex's output to Gemini
+3. Ask Gemini: "Audit this writing. Did it follow the original instructions? Rate quality 1-10. List any issues."
+4. If audit fails (score < 7 or issues found):
+   - Send feedback to Codex via `codex-reply`
+   - Request revision
+   - Re-audit until passing
+5. Present final audited output to user
+
+#### Rule 4: Programming Tasks
+
+Handle these yourself (Claude):
+- Writing code
+- Debugging
+- Code review
+- CLI commands
+- Git operations
+- File operations
+
+For heavy programming tasks, spawn your own Task agents with `subagent_type='general-purpose'`.
+
+#### Rule 5: Image Generation
+
+For ANY image request, use the Nanobanana MCP (Python version with Nano Banana Pro):
+- Use `mcp__nanobanana__generate_image` for new images (supports up to 4K resolution)
+- Use `mcp__nanobanana__edit_image` for modifications
+
+**Advanced features available:**
+- Request "4k" or "high resolution" for maximum quality
+- Thinking level HIGH is enabled by default for complex prompts
+- Search grounding available for real-world references
+
+Image triggers:
+- "generate an image"
+- "create a picture"
+- "make a photo"
+- "design a logo"
+- "edit this image"
+- "4k image of..."
+
+---
+
+### Example Workflows
+
+#### Example: User Story Request
+
+```
+User: "Write a user story for login with OAuth"
+
+1. [Codex Rewrite] -> "Create a user story in standard format (As a... I want... So that...) for implementing OAuth-based login functionality"
+
+2. [Codex Write] -> Produces user story
+
+3. [Gemini Audit] -> "Score: 8/10. Follows format. Suggest adding acceptance criteria."
+
+4. [Codex Revise] -> Adds acceptance criteria
+
+5. [Gemini Re-audit] -> "Score: 9/10. Approved."
+
+6. [Return to user]
+```
+
+#### Example: Code + Docs Request
+
+```
+User: "Add a logout button and document it"
+
+1. [Codex Rewrite] -> Clarified prompt
+
+2. [Claude] -> Implements logout button (programming)
+
+3. [Codex] -> Writes documentation (writing)
+
+4. [Gemini] -> Audits documentation
+
+5. [Return to user]
+```
+
+#### Example: Image Request
+
+```
+User: "Generate a logo for my coffee shop"
+
+1. [Codex Rewrite] -> "Generate a professional logo for a coffee shop. Style: modern, minimalist. Include coffee cup imagery."
+
+2. [Nanobanana] -> gemini_generate_image with enhanced prompt
+
+3. [Return image to user]
+```
+
+---
+
+### Tool Reference
+
+#### Codex Writer Tools
+- `codex` - Start new writing session
+- `codex-reply` - Continue/revise existing session
+
+#### Gemini Auditor Tools
+- `gemini_chat` - Send audit request
+- Other tools as exposed by the MCP wrapper
+
+#### Nanobanana Image Tools (Python - Nano Banana Pro)
+- `mcp__nanobanana__generate_image` - Generate new images (up to 4K resolution)
+- `mcp__nanobanana__edit_image` - Edit existing images
+- `mcp__nanobanana__get_generation_info` - View generation details
+
+**Model:** `gemini-3-pro-image-preview` (best quality)
+**Features:** 4K resolution, thinking levels, search grounding, auto model selection
+
+---
+
+### Important Notes
+
+1. **Subscriptions**: Both Codex and Gemini use your $20/month subscriptions, not API credits
+2. **No Self-Writing**: Claude must NEVER write copy directly - always use Codex
+3. **Mandatory Audit**: ALL Codex output must be audited by Gemini before returning to user
+4. **Parallel Agents**: When possible, run independent agents in parallel using multiple Task tool calls
+
+---
+
 ## Notes
 - These instructions apply to all projects globally
 - Project-specific CLAUDE.md files can add additional rules

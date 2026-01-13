@@ -8,6 +8,7 @@ Personal repository for custom Claude Code configurations including slash comman
 
 - `CLAUDE.md` - Project-specific instructions for this repository
 - `CLAUDE.global.md` - Synced copy of global standards from `~/.claude/CLAUDE.md`
+- `claude-orchestrator-setup.md` - Complete setup guide for Claude Code orchestrator with Codex, Gemini, and Nanobanana MCPs
 
 ### Custom Slash Commands
 
